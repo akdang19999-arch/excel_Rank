@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RANK, RANK.EQ</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; line-height: 1.4; padding: 20px; max-width: 900px; margin: 0 auto; color: #333; }
+        
+        /* 헤더와 설명 디자인 */
+        .header-banner {
+            background-color: #107c41; /* 엑셀 시그니처 초록색 */
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 10px rgba(16, 124, 65, 0.3);
+        }
+        .header-banner h1 { margin: 0 0 10px 0; font-size: 34px; font-weight: 900; letter-spacing: 1px; }
+        .header-banner p { margin: 0; font-size: 18px; font-weight: bold; opacity: 0.9; }
+        
+        .description { 
+            background-color: #f0fdf4; border: 2px solid #bbf7d0; border-left: 8px solid #107c41; 
+            padding: 20px 25px; border-radius: 10px; margin-bottom: 30px; font-size: 16px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .description strong { color: #107c41; }
+        
+        .code-box { 
+            background-color: #ffffff; border: 1px solid #d1d5db; border-left: 4px solid #107c41;
+            padding: 12px 15px; border-radius: 6px; font-family: 'Consolas', monospace; 
+            font-size: 17px; margin: 12px 0; font-weight: bold; color: #1f2937;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .emoji-icon { font-size: 28px; vertical-align: bottom; margin-right: 8px; }
+        
+        h2 { font-size: 20px; color: #107c41; margin-top: 30px; font-weight: bold; }
+        
+        /* 엑셀 UI 스타일 */
+        .excel-container { border: 1px solid #c0c0c0; background-color: #fff; margin-top: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .formula-bar-container { display: flex; align-items: center; border-bottom: 1px solid #c0c0c0; padding: 5px 10px; background-color: #f3f2f1; }
+        .fx-icon { font-style: italic; font-weight: bold; color: #666; margin-right: 10px; font-family: 'Times New Roman', Times, serif; }
+        .formula-bar { flex-grow: 1; background-color: #fff; border: 1px solid #ccc; padding: 5px 10px; font-family: 'Consolas', monospace; font-size: 16px; min-height: 22px; font-weight: bold;}
+        
+        .excel-table { width: 100%; border-collapse: collapse; font-size: 15px; text-align: center; }
+        .excel-table th, .excel-table td { border: 1px solid #d4d4d4; padding: 10px; }
+        .excel-table th { background-color: #f3f2f1; color: #333; font-weight: normal; }
+        .excel-table .row-num { background-color: #f3f2f1; width: 40px; color: #333; }
+        
+        /* 셀 스타일 */
+        .header-cell { background-color: #e6f2ff; font-weight: bold; }
+        .editable { background-color: #fffbdd; cursor: text; font-weight: bold; outline: none; }
+        .editable:focus { border: 2px solid #217346; padding: 9px; }
+        .result-cell { font-weight: bold; color: #217346; background-color: #e6ffed; cursor: pointer; transition: all 0.2s;}
+        .result-cell:hover { background-color: #ccffdb; }
+        .active-cell { border: 2px solid #217346; padding: 9px; background-color: #ccffdb;}
+        
+        /* 구문 강조 (Syntax Highlighting) */
+        .func { color: #0000FF; }
+        .paren { color: #333; }
+        .comma { color: #333; }
+        .ref-target { color: #2563eb; } /* 파란색: 찾을 값 */
+        .ref-range { color: #dc2626; } /* 빨간색: 참조 범위 */
+        .ref-order { color: #047857; } /* 초록색: 정렬 방식 */
+        
+        /* 엑셀 표 범위 하이라이트 */
+        .highlight-target { background-color: rgba(37, 99, 235, 0.15) !important; outline: 2px solid #2563eb; outline-offset: -2px; z-index: 10; position: relative; }
+        .highlight-range { background-color: rgba(220, 38, 38, 0.1) !important; outline: 2px solid #dc2626; outline-offset: -2px; z-index: 5; position: relative; }
+        /* 타겟과 범위가 겹칠 때 타겟 윤곽선을 우선 표시하기 위해 z-index 조정 */
+
+        .hint { font-size: 14px; color: #666; margin-top: 8px; font-weight: bold; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="header-banner">
+        <h1><span class="emoji-icon">🏆</span>RANK, RANK.EQ</h1>
+        <p>전체 점수 중에서 내 점수는 몇 등일까? 순위 구하기의 끝판왕!</p>
+    </div>
+
+    <div class="description">
+        <p style="margin-top: 0;">
+            <strong>RANK.EQ</strong> 함수는 전체 범위에서 특정 숫자의 <strong>순위(등수)</strong>를 구해줍니다. <br>
+            (과거에 쓰던 RANK 함수와 완전히 똑같은 최신 버전 함수입니다. 동점자가 있으면 '높은 등수'를 같이 줍니다.)
+        </p>
+        
+        <div class="code-box">=RANK.EQ(<span class="ref-target">순위를구할값</span>, <span class="ref-range">전체참조범위</span>, <span class="ref-order">[내림/오름차순]</span>)</div>
+        
+        <ul style="margin-bottom: 0; padding-left: 20px; line-height: 1.8;">
+            <li><span class="ref-target">순위를 구할 값</span> : 내 점수가 있는 셀 하나 클릭!</li>
+            <li><span class="ref-range">전체 참조 범위</span> : 비교할 전체 점수 범위를 드래그 <strong>(절대참조 $ 고정 필수!)</strong></li>
+            <li><span class="ref-order">0 또는 생략</span> : 점수가 가장 높은 사람이 1등 (내림차순)</li>
+        </ul>
+    </div>
+
+    <h2>📌 실습: 학생들의 성적 순위 구하기</h2>
+    <p style="font-size: 15px; color: #555;">
+        B열의 점수를 자유롭게 바꿔보세요! 실시간으로 순위가 계산됩니다.<br>
+        <strong>C열의 순위(결과) 셀을 클릭</strong>하면 수식에 사용된 범위가 색깔로 표시됩니다.
+    </p>
+
+    <div class="excel-container">
+        <div class="formula-bar-container">
+            <div class="fx-icon">fx</div>
+            <div class="formula-bar" id="formula-bar">
+                <span style="color:#888; font-weight:normal;">순위 셀을 클릭하면 수식이 나타납니다.</span>
+            </div>
+        </div>
+        <table class="excel-table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>A</th>
+                    <th>B</th>
+                    <th>C</th>
+                </tr>
+            </thead>
+            <tbody id="sim-body">
+                <tr>
+                    <td class="row-num">1</td>
+                    <td class="header-cell">이름</td>
+                    <td class="header-cell">점수</td>
+                    <td class="header-cell">순위 (RANK.EQ)</td>
+                </tr>
+                <!-- 데이터 행 -->
+                <tr data-row="2">
+                    <td class="row-num">2</td>
+                    <td>유재석</td>
+                    <td class="editable score-cell" contenteditable="true">95</td>
+                    <td class="result-cell rank-cell" onclick="selectCell(2, this)"></td>
+                </tr>
+                <tr data-row="3">
+                    <td class="row-num">3</td>
+                    <td>강호동</td>
+                    <td class="editable score-cell" contenteditable="true">88</td>
+                    <td class="result-cell rank-cell" onclick="selectCell(3, this)"></td>
+                </tr>
+                <tr data-row="4">
+                    <td class="row-num">4</td>
+                    <td>신동엽</td>
+                    <td class="editable score-cell" contenteditable="true">95</td>
+                    <td class="result-cell rank-cell" onclick="selectCell(4, this)"></td>
+                </tr>
+                <tr data-row="5">
+                    <td class="row-num">5</td>
+                    <td>박명수</td>
+                    <td class="editable score-cell" contenteditable="true">72</td>
+                    <td class="result-cell rank-cell" onclick="selectCell(5, this)"></td>
+                </tr>
+                <tr data-row="6">
+                    <td class="row-num">6</td>
+                    <td>전현무</td>
+                    <td class="editable score-cell" contenteditable="true">85</td>
+                    <td class="result-cell rank-cell" onclick="selectCell(6, this)"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="hint">* 수식을 자동 채우기로 아래로 끌어내릴 때 범위가 밀리지 않도록 전체 범위에 $를 붙여 고정($B$2:$B$6)합니다.</div>
+
+    <script>
+        const scoreCells = document.querySelectorAll('.score-cell');
+        const rankCells = document.querySelectorAll('.rank-cell');
+        const formulaBar = document.getElementById('formula-bar');
+        
+        let activeRow = null;
+
+        // 순위 계산 로직 (RANK.EQ 방식: 내림차순, 동점자는 높은 등수 부여)
+        function calculateRanks() {
+            // 점수 배열 수집
+            let scores = [];
+            scoreCells.forEach((cell, index) => {
+                let val = parseInt(cell.innerText);
+                if (isNaN(val)) val = 0;
+                scores.push({ row: index + 2, score: val });
+            });
+
+            // 원본 배열에서 각 점수가 전체에서 몇 등인지 계산
+            scores.forEach((item, i) => {
+                let rank = 1;
+                scores.forEach(otherItem => {
+                    // 나보다 점수가 큰 사람이 있으면 내 등수를 1씩 뒤로 미룸
+                    if (otherItem.score > item.score) {
+                        rank++;
+                    }
+                });
+                // 결과 셀에 반영
+                rankCells[i].innerText = rank;
+            });
+
+            // 현재 선택된 셀이 있다면 수식 바 업데이트 유지
+            if (activeRow !== null) {
+                const activeElement = document.querySelector(`tr[data-row="${activeRow}"] .rank-cell`);
+                selectCell(activeRow, activeElement);
+            }
+        }
+
+        // 특정 순위 셀 클릭 시 이벤트 처리
+        function selectCell(rowNum, element) {
+            activeRow = rowNum;
+
+            // 1. 결과 셀 강조 초기화 및 재설정
+            rankCells.forEach(cell => cell.classList.remove('active-cell'));
+            element.classList.add('active-cell');
+
+            // 2. 표 내부 하이라이트 초기화
+            scoreCells.forEach(cell => {
+                cell.classList.remove('highlight-target');
+                cell.classList.remove('highlight-range');
+            });
+
+            // 3. 전체 참조 범위(빨간색) 하이라이트 적용
+            scoreCells.forEach(cell => {
+                cell.classList.add('highlight-range');
+            });
+
+            // 4. 타겟 셀(파란색) 하이라이트 덮어쓰기 적용
+            const targetCell = document.querySelector(`tr[data-row="${rowNum}"] .score-cell`);
+            if (targetCell) {
+                targetCell.classList.add('highlight-target');
+            }
+
+            // 5. 수식 입력줄 업데이트 (구문 강조 적용)
+            const html = `
+                <span style="color:#333;">=</span><span class="func">RANK.EQ</span><span class="paren">(</span><span class="ref-target">B${rowNum}</span><span class="comma">, </span><span class="ref-range">$B$2:$B$6</span><span class="comma">, </span><span class="ref-order">0</span><span class="paren">)</span>
+            `;
+            formulaBar.innerHTML = html;
+        }
+
+        // 점수가 수정될 때마다 자동으로 순위 재계산
+        scoreCells.forEach(cell => {
+            cell.addEventListener('input', calculateRanks);
+        });
+
+        // 페이지 로드 시 초기 계산 실행
+        calculateRanks();
+    </script>
+</body>
+</html>
